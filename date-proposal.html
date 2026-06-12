@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>💗 A Question For You</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --pink: #F48FB1; --pink-deep: #e07799; --lilac: #CE93D8;
+      --maroon: #4A1525; --espresso: #5D4037;
+    }
+    html, body {
+      height: 100%; font-family: 'Inter', sans-serif; overflow: hidden;
+      background: linear-gradient(135deg, #FCE4EC, #E8EAF6, #FFF3E0);
+      background-size: 400% 400%;
+      animation: bgShift 10s ease-in-out infinite alternate;
+      display: flex; align-items: center; justify-content: center;
+    }
+    @keyframes bgShift {
+      0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; }
+    }
+    .scene {
+      width: 100vw; height: 100vh;
+      position: relative; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .screen {
+      position: absolute; width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.5s;
+    }
+    .screen.active { opacity: 1; pointer-events: all; }
+    .card {
+      background: rgba(255,255,255,0.72); border: 1.5px solid rgba(255,255,255,0.9);
+      border-radius: 28px; box-shadow: 0 8px 40px rgba(180,80,110,0.13);
+      padding: 40px 44px 44px; max-width: 440px; width: 90%;
+      display: flex; flex-direction: column; align-items: center; gap: 20px;
+      backdrop-filter: blur(18px); text-align: center;
+    }
+    h1 { font-family: 'Playfair Display', serif; color: var(--maroon); font-size: 1.65rem; line-height: 1.3; }
+    .subtext { color: var(--espresso); font-size: 0.95rem; opacity: 0.8; line-height: 1.5; }
+    .pug-box {
+      width: 120px; height: 120px; border-radius: 18px; background: #2b2b2b;
+      display: flex; align-items: center; justify-content: center; font-size: 72px;
+    }
+    .btn {
+      border: none; border-radius: 50px; padding: 14px 34px;
+      font-size: 1rem; font-weight: 500; cursor: pointer;
+      transition: background 0.3s, transform 0.3s, box-shadow 0.3s; letter-spacing: 0.01em;
+    }
+    .btn-pink { background: var(--pink); color: white; }
+    .btn-pink:hover { background: var(--pink-deep); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(244,143,177,0.45); }
+    .btn-lilac { background: var(--lilac); color: var(--maroon); font-size: 0.85rem; padding: 11px 24px; }
+    .btn-wide { width: 100%; max-width: 280px; }
+    .proposal-btns {
+      display: flex; gap: 14px; align-items: center; justify-content: center; width: 100%;
+    }
+    /* No button: starts inline, then switches to absolute when fleeing */
+    #no-btn {
+      pointer-events: none;
+      user-select: none;
+    }
+    #no-btn.fleeing {
+      position: absolute;
+      z-index: 9999;
+      transition: none;
+    }
+    .form-group { width: 100%; display: flex; flex-direction: column; gap: 8px; text-align: left; }
+    .form-group label { font-size: 0.82rem; font-weight: 600; color: var(--maroon); letter-spacing: 0.04em; text-transform: uppercase; }
+    .form-group input, .form-group select {
+      width: 100%; padding: 13px 16px;
+      border: 1.5px solid rgba(244,143,177,0.35); border-radius: 14px;
+      background: rgba(255,255,255,0.75); font-family: 'Inter', sans-serif;
+      font-size: 0.95rem; color: var(--espresso); outline: none;
+      cursor: pointer; appearance: none; -webkit-appearance: none;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--pink); box-shadow: 0 0 0 3px rgba(244,143,177,0.18); }
+    .input-wrap { position: relative; }
+    .input-wrap .icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+    .food-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; }
+    .food-card {
+      background: rgba(255,255,255,0.85); border: 2px solid transparent; border-radius: 16px;
+      padding: 18px 8px; cursor: pointer; transition: all 0.3s;
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      font-size: 0.82rem; font-weight: 500; color: var(--espresso);
+      box-shadow: 0 2px 10px rgba(180,80,110,0.08);
+    }
+    .food-card .emoji { font-size: 1.7rem; }
+    .food-card:hover { transform: scale(1.06); box-shadow: 0 6px 18px rgba(244,143,177,0.25); }
+    .food-card.selected { border-color: var(--pink-deep); background: rgba(252,228,236,0.85); box-shadow: 0 0 0 3px rgba(224,119,153,0.22); }
+    .letter-card h1 { font-size: 1.4rem; line-height: 1.5; text-align: left; }
+    .ps-note { font-size: 0.82rem; color: var(--espresso); opacity: 0.65; line-height: 1.6; text-align: left; font-style: italic; }
+    .hearts { font-size: 1.4rem; letter-spacing: 4px; }
+    .cal-box { display: flex; align-items: center; gap: 10px; background: rgba(244,143,177,0.15); border-radius: 14px; padding: 10px 18px; }
+    .cal-box .cal-icon { font-size: 2.2rem; }
+    .cal-box .cal-num { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 900; color: var(--maroon); }
+    .icon-box { font-size: 3.5rem; line-height: 1; }
+    input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0; position: absolute; right: 0; width: 100%; height: 100%; cursor: pointer; }
+  </style>
+</head>
+<body>
+<div class="scene" id="scene">
+
+  <!-- Screen 1: Proposal -->
+  <div class="screen active" id="screen-1">
+    <div class="card">
+      <div class="pug-box">🐾</div>
+      <h1>🌸 Will you go on a date with me? 🌸</h1>
+      <div class="proposal-btns" id="proposal-btns">
+        <button class="btn btn-pink" id="yes-btn" onclick="goTo('screen-2')">YES 💗</button>
+        <button class="btn btn-lilac" id="no-btn">no 🥺</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 2: Shock -->
+  <div class="screen" id="screen-2">
+    <div class="card">
+      <div class="icon-box">🩹</div>
+      <h1>WAIT YOU ACTUALLY SAID YES?? 😳</h1>
+      <p class="subtext">I was so ready for you to say no 😭</p>
+      <button class="btn btn-pink btn-wide" onclick="goTo('screen-3')">okay, wait...</button>
+    </div>
+  </div>
+
+  <!-- Screen 3: Date Picker -->
+  <div class="screen" id="screen-3">
+    <div class="card">
+      <div class="cal-box">
+        <span class="cal-icon">📅</span>
+        <span class="cal-num">17</span>
+        <span>🐾</span>
+      </div>
+      <h1>So... when are you free?</h1>
+      <div class="form-group">
+        <label>Pick a Day</label>
+        <div class="input-wrap">
+          <input type="date" id="date-input" />
+          <span class="icon">📆</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>What Time?</label>
+        <div class="input-wrap">
+          <select id="time-select">
+            <option value="" disabled selected>choose a time ✨</option>
+            <option>12:00 PM</option><option>12:30 PM</option><option>1:00 PM</option>
+            <option>1:30 PM</option><option>2:00 PM</option><option>2:30 PM</option>
+            <option>3:00 PM</option><option>3:30 PM</option><option>4:00 PM</option>
+            <option>4:30 PM</option><option>5:00 PM</option>
+          </select>
+          <span class="icon">🕐</span>
+        </div>
+      </div>
+      <button class="btn btn-pink btn-wide" onclick="handleDateSubmit()">set the date! 💗</button>
+    </div>
+  </div>
+
+  <!-- Screen 4: Food -->
+  <div class="screen" id="screen-4">
+    <div class="card">
+      <h1>What are we feeling? 🍽️✨</h1>
+      <p class="subtext">pick your vibe</p>
+      <div class="food-grid">
+        <div class="food-card" onclick="selectFood(this)"><span class="emoji">🍕</span>Pizza</div>
+        <div class="food-card" onclick="selectFood(this)"><span class="emoji">🍣</span>Sushi</div>
+        <div class="food-card" onclick="selectFood(this)"><span class="emoji">🍔</span>Burgers</div>
+        <div class="food-card" onclick="selectFood(this)"><span class="emoji">🍝</span>Pasta</div>
+        <div class="food-card" onclick="selectFood(this)"><span class="emoji">🌮</span>Tacos</div>
+        <div class="food-card" onclick="selectFood(this)"><span class="emoji">🍜</span>Ramen</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 5: Letter -->
+  <div class="screen" id="screen-5">
+    <div class="card letter-card">
+      <h1>glad you didn't say no. be ready by 6, i'm coming to get you 🚗</h1>
+      <p class="ps-note">P.S. normal people text. I made a website on Replit, during lunch, for you. no big deal.</p>
+      <div class="hearts">💗💗💗💗💗</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const noBtn = document.getElementById('no-btn');
+  const scene = document.getElementById('scene');
+  let isFleeing = false;
+  const FLEE = 130;
+
+  function goTo(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if (id !== 'screen-1') {
+      noBtn.style.display = 'none';
+    }
+  }
+
+  // When cursor gets close for the first time, snap the button to absolute position
+  function makeButtonFlee(cursorX, cursorY) {
+    if (!isFleeing) {
+      // Get current position of button in viewport
+      const rect = noBtn.getBoundingClientRect();
+      const sceneRect = scene.getBoundingClientRect();
+      // Switch to absolute inside scene
+      noBtn.classList.add('fleeing');
+      noBtn.style.left = (rect.left - sceneRect.left) + 'px';
+      noBtn.style.top  = (rect.top  - sceneRect.top)  + 'px';
+      // Remove from inline flow
+      document.getElementById('proposal-btns').style.minHeight =
+        document.getElementById('proposal-btns').offsetHeight + 'px';
+      isFleeing = true;
+    }
+    fleeFrom(cursorX, cursorY);
+  }
+
+  function fleeFrom(cx, cy) {
+    const rect = noBtn.getBoundingClientRect();
+    const sceneRect = scene.getBoundingClientRect();
+    const bx = rect.left + rect.width / 2;
+    const by = rect.top  + rect.height / 2;
+    const dx = cx - bx;
+    const dy = cy - by;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < FLEE) {
+      const angle = Math.atan2(dy, dx);
+      let nx = bx - Math.cos(angle) * (FLEE + 80) - sceneRect.left - rect.width / 2;
+      let ny = by - Math.sin(angle) * (FLEE + 80) - sceneRect.top  - rect.height / 2;
+      nx = Math.max(10, Math.min(sceneRect.width  - rect.width  - 10, nx));
+      ny = Math.max(10, Math.min(sceneRect.height - rect.height - 10, ny));
+      noBtn.style.left = nx + 'px';
+      noBtn.style.top  = ny + 'px';
+    }
+  }
+
+  document.addEventListener('mousemove', e => {
+    const rect = noBtn.getBoundingClientRect();
+    const bx = rect.left + rect.width / 2;
+    const by = rect.top  + rect.height / 2;
+    const dist = Math.sqrt((e.clientX-bx)**2 + (e.clientY-by)**2);
+    if (dist < FLEE) makeButtonFlee(e.clientX, e.clientY);
+  });
+
+  document.addEventListener('touchmove', e => {
+    const t = e.touches[0];
+    const rect = noBtn.getBoundingClientRect();
+    const bx = rect.left + rect.width / 2;
+    const by = rect.top  + rect.height / 2;
+    const dist = Math.sqrt((t.clientX-bx)**2 + (t.clientY-by)**2);
+    if (dist < FLEE + 40) makeButtonFlee(t.clientX, t.clientY);
+  }, { passive: true });
+
+  function handleDateSubmit() {
+    const d = document.getElementById('date-input').value;
+    const t = document.getElementById('time-select').value;
+    if (!d || !t) {
+      const card = document.querySelector('#screen-3 .card');
+      card.style.transform = 'translateX(-8px)';
+      setTimeout(() => card.style.transform = 'translateX(8px)', 100);
+      setTimeout(() => card.style.transform = 'translateX(0)', 200);
+      return;
+    }
+    goTo('screen-4');
+  }
+
+  function selectFood(el) {
+    document.querySelectorAll('.food-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    setTimeout(() => goTo('screen-5'), 420);
+  }
+</script>
+</body>
+</html>
